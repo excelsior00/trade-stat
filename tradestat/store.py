@@ -47,7 +47,8 @@ def upsert(kind: str, new_rows: list[dict], snapshot: bool = False) -> int:
     rows = sorted(cur.values(), key=lambda r: tuple(r[k] for k in keys))
     path.parent.mkdir(parents=True, exist_ok=True)
     with open(path, "w", encoding="utf-8", newline="") as f:
-        w = csv.DictWriter(f, fieldnames=keys + vals)
+        w = csv.DictWriter(f, fieldnames=keys + vals, lineterminator="
+")
         w.writeheader()
         for r in rows:
             w.writerow({k: _fmt(r.get(k)) for k in keys + vals})
