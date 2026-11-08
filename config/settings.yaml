@@ -1,0 +1,74 @@
+# ── API 엔드포인트 ─────────────────────────────────────────────
+# scripts/probe.py 실행 결과로 operation 경로가 필요하면 여기만 수정하면 됩니다.
+endpoints:
+  tenday: https://apis.data.go.kr/1220000/cntyMmUtPrviExpAcrs/getCntyMmUtPrviExpAcrs  # 수출 주요국가별 10일 단위 잠정치
+  nation: https://apis.data.go.kr/1220000/nationtrade/getNationtradeList            # 국가별 수출입실적
+  item:   https://apis.data.go.kr/1220000/nitemtrade/getNitemtradeList              # 품목별 국가별 수출입실적
+
+# 10일 잠정치 응답 형식 (2026-11 실측): 행 = 월×구간, 열 = 국가
+#   priodMon=202601, priodDt=01~10 | 01~20 | 01~31(말일), itemUsdAmt00~10 = 천달러
+tenday_fields:
+  yymm: priodMon
+  period: priodDt
+  columns:
+    TOTAL: itemUsdAmt00
+    CN: itemUsdAmt01
+    US: itemUsdAmt02
+    EU: itemUsdAmt03
+    VN: itemUsdAmt04
+    HK: itemUsdAmt05
+    JP: itemUsdAmt06
+    TW: itemUsdAmt07
+    IN: itemUsdAmt08
+    SG: itemUsdAmt09
+    MY: itemUsdAmt10
+
+# 10일 잠정치 데이터 시작 시점 (API 제공 범위: 2016.01~)
+tenday_start: "201601"
+# 월 확정치(국가·품목) 백필 기간 (년)
+monthly_backfill_years: 4
+
+# ── 국가 ─────────────────────────────────────────────────────
+# code: 대시보드/CSV에서 쓰는 코드, name: 10일 잠정치 API 응답의 국가명 매칭용
+countries:
+  - {code: TOTAL, name: 전체}
+  - {code: CN, name: 중국}
+  - {code: US, name: 미국}
+  - {code: EU, name: 유럽연합}
+  - {code: VN, name: 베트남}
+  - {code: HK, name: 홍콩}
+  - {code: JP, name: 일본}
+  - {code: TW, name: 대만}
+  - {code: IN, name: 인도}
+  - {code: SG, name: 싱가포르}
+  - {code: MY, name: 말레이시아}
+
+# 품목별로 저장할 국가. ALL = 전체 국가 합계 (API는 국가 미지정 조회 시 모든 국가를 한 번에 반환)
+item_countries: [ALL, CN, US, VN, HK, JP, TW, IN, SG, MY]
+
+# ── 품목 (HS코드 매핑) ─────────────────────────────────────────
+# hs: 합산할 HS코드(2/4/6/10단위), minus: 차감할 HS코드(중복 방지용)
+# 산업부 15대 주력품목 분류를 HS코드로 근사한 것으로, 공식 발표치와 약간 다를 수 있습니다.
+items:
+  - {id: semi,      name: 반도체,       hs: ["8541", "8542"]}
+  - {id: auto,      name: 자동차,       hs: ["8702", "8703", "8704"]}
+  - {id: autoparts, name: 자동차부품,   hs: ["8708"]}
+  - {id: petro,     name: 석유제품,     hs: ["2710"]}
+  - {id: ship,      name: 선박,         hs: ["89"]}
+  - {id: wireless,  name: 무선통신기기, hs: ["8517"]}
+  - {id: computer,  name: 컴퓨터,       hs: ["8471"]}
+  - {id: display,   name: 디스플레이,   hs: ["8524", "9013"]}
+  - {id: appliance, name: 가전,         hs: ["8415", "8418", "8450", "8528"]}
+  - {id: battery,   name: 이차전지,     hs: ["8507"]}
+  - {id: steel,     name: 철강,         hs: ["72", "73"]}
+  - {id: petchem,   name: 석유화학,     hs: ["3901", "3902", "3903", "3907"]}
+  - {id: machinery, name: 일반기계,     hs: ["84"], minus: ["8471", "8415", "8418", "8450"]}
+  - {id: textile,   name: 섬유,         hs: ["54", "55", "60"]}
+  - {id: biohealth, name: 바이오헬스,   hs: ["3002", "3004", "9018"]}
+  - {id: cosmetics, name: 화장품,       hs: ["3304"]}
+
+# ── 알림 ─────────────────────────────────────────────────────
+alert:
+  # 항목의 전년동기비가 '전체' 전년동기비보다 이 값(%p) 이상 높으면 🔺, 낮으면 🔻 표시
+  # 예) 전체 +20%, 미국 +45% → 차이 +25%p → 🔺
+  yoy_gap_pp: 20

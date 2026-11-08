@@ -1,0 +1,76 @@
+name: update
+
+on:
+  schedule:
+    # KST = UTC+9. 공표일(1·11·21일) 전후 사흘간 하루 2회(KST 10:00, 15:00) 확인.
+    # 새 구간이 없으면 알림 없이 종료(state.json으로 중복 방지).
+    - cron: "0 1,6 1,2,3,11,12,13,21,22,23 * *"
+    # 월 확정치(매월 15일경) 반영
+    - cron: "0 1 15,16,17,18 * *"
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "update | backfill | notify-force"
+        default: update
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: update
+  cancel-in-progress: false
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    timeout-minutes: 60
+    env:
+      DATA_GO_KR_KEY: ${{ secrets.DATA_GO_KR_KEY }}
+      TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+      TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+      DASHBOARD_URL: ${{ vars.DASHBOARD_URL }}
+      TZ: Asia/Seoul
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: pip
+      - name: 한글 폰트 (텔레그램 차트용)
+        run: sudo apt-get install -y -qq fonts-nanum > /dev/null && rm -rf ~/.cache/matplotlib
+      - run: pip install -r requirements.txt
+      - run: python -m pytest -q
+      - name: 수집
+        run: |
+          case "${{ github.event.inputs.mode || 'update' }}" in
+            backfill)     python -m tradestat backfill ;;
+            notify-force) python -m tradestat build ;;
+            *)            python -m tradestat update --no-notify ;;
+          esac
+      # 알림 실패(토큰 오류 등)가 있어도 데이터 커밋·대시보드 배포는 진행
+      - name: 텔레그램 알림
+        continue-on-error: true
+        run: |
+          if [ "${{ github.event.inputs.mode }}" = "notify-force" ]; then
+            python -m tradestat notify --force
+          else
+            python -m tradestat notify
+          fi
+      - name: 데이터 커밋
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A data docs/data
+          git diff --cached --quiet || git commit -m "data: $(date +'%Y-%m-%d %H:%M') 갱신"
+          git push
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: docs
+      - id: deploy
+        uses: actions/deploy-pages@v4

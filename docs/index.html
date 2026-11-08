@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>수출 잠정치 대시보드</title>
+<meta name="description" content="관세청 10일 단위 수출 잠정치 및 국가·품목별 월 실적의 전년동기·전월동기 대비 추이">
+<link rel="stylesheet" href="style.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/echarts/5.5.0/echarts.min.js"></script>
+</head>
+<body>
+<header class="top">
+  <div class="title">
+    <h1>수출 잠정치 대시보드</h1>
+    <p class="sub" id="updated">불러오는 중…</p>
+  </div>
+  <button id="themeBtn" class="icon-btn" aria-label="테마 전환">◐</button>
+</header>
+
+<nav class="tabs" role="tablist">
+  <button role="tab" data-tab="tenday">10일 잠정치</button>
+  <button role="tab" data-tab="nation">국가별 월</button>
+  <button role="tab" data-tab="items">품목별 월</button>
+  <button role="tab" data-tab="prov">잠정 vs 확정</button>
+</nav>
+
+<main>
+  <section class="filters" id="filters"></section>
+  <section class="kpis" id="kpis"></section>
+
+  <section class="grid">
+    <article class="card wide">
+      <h2 id="t-yoyLines">최근 3년 추이</h2>
+      <p class="hint">같은 기간을 연도별로 겹쳐 비교</p>
+      <div class="chart" id="c-yoyLines"></div>
+    </article>
+    <article class="card">
+      <h2>전년동기대비 증감률 (최근 36개월)</h2>
+      <div class="chart" id="c-yoyBars"></div>
+    </article>
+    <article class="card">
+      <h2>전월동기대비 증감률 (최근 12개월)</h2>
+      <div class="chart" id="c-momBars"></div>
+    </article>
+    <article class="card wide">
+      <h2 id="t-last12">최근 12개월 금액</h2>
+      <div class="chart short" id="c-last12"></div>
+    </article>
+    <article class="card wide">
+      <h2 id="t-heat">한눈에 보기 · 전년동기대비 (%)</h2>
+      <p class="hint">빨강 = 증가, 파랑 = 감소. 칸을 누르면 해당 항목으로 이동</p>
+      <div class="chart tall" id="c-heat"></div>
+    </article>
+    <article class="card wide">
+      <h2 id="t-table">최신 기간 요약</h2>
+      <div class="table-wrap"><table id="tbl"></table></div>
+    </article>
+  </section>
+</main>
+<footer>
+  자료: 관세청 (공공데이터포털 Open API) · 잠정치는 이후 정정될 수 있음 · 일평균은 조업일수(평일 1, 토 0.5, 일·공휴일 0) 기준 · 품목은 HS코드 근사 분류
+</footer>
+<script src="app.js"></script>
+</body>
+</html>
