@@ -53,7 +53,9 @@ jobs:
             *)            python -m tradestat update --no-notify ;;
           esac
       # 알림 실패(토큰 오류 등)가 있어도 데이터 커밋·대시보드 배포는 진행
+      # 저장소 변수 TELEGRAM_ENABLED=false 이면 알림을 보내지 않음 (다시 켜려면 true로 변경)
       - name: 텔레그램 알림
+        if: vars.TELEGRAM_ENABLED != 'false'
         continue-on-error: true
         run: |
           if [ "${{ github.event.inputs.mode }}" = "notify-force" ]; then

@@ -40,6 +40,8 @@ copy .env.example .env      # DATA_GO_KR_KEY 등 입력
 3. **Settings → Pages → Source: GitHub Actions**
 4. 초기 데이터는 저장소에 포함되어 있으므로 **Actions → update → Run workflow** (mode: `update`) 로 배포 확인 — 이후는 자동
 
+텔레그램 알림 끄기/켜기: 저장소 Variables의 `TELEGRAM_ENABLED`를 `false`/`true`로 변경 (데이터 수집·대시보드 갱신은 계속됨).
+
 자동 실행: 매월 1~3·11~13·21~23일 KST 10시/15시, 15~18일 KST 10시. 새 구간이 나왔을 때만 알림이 갑니다.
 
 ## 구성
